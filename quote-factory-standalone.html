@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quote Factory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d12;
+  --panel:#12151d;
+  --panel2:#171b25;
+  --border:#232838;
+  --text:#e8ecf3;
+  --muted:#7c879b;
+  --cyan:#4ce0ff;
+  --pink:#ff3d81;
+  --lime:#9eff6e;
+  --amber:#ffb84c;
+  --red:#ff5c5c;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;}
+body{min-height:100vh;}
+::selection{background:var(--cyan);color:#000;}
+.app{max-width:1180px;margin:0 auto;padding:22px 18px 60px;}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;gap:16px;padding:6px 2px 22px;border-bottom:1px solid var(--border);margin-bottom:18px;}
+.spike{width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:16px solid var(--cyan);filter:drop-shadow(0 0 6px rgba(76,224,255,.5));}
+.brand h1{font-family:'Chakra Petch',sans-serif;font-size:22px;letter-spacing:1px;margin:0;font-weight:700;}
+.brand h1 span{color:var(--cyan);}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:12.5px;}
+
+nav.tabs{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;}
+nav.tabs button{
+  font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.5px;
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  padding:9px 14px;border-radius:3px;cursor:pointer;text-transform:uppercase;transition:.15s;
+}
+nav.tabs button:hover{color:var(--text);border-color:#334;}
+nav.tabs button.active{color:#000;background:var(--cyan);border-color:var(--cyan);}
+
+/* ---------- layout helpers ---------- */
+.tab{display:none;animation:fade .25s ease;}
+.tab.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:18px;margin-bottom:16px;}
+.panel h2{font-family:'Chakra Petch',sans-serif;font-size:14px;letter-spacing:.6px;text-transform:uppercase;margin:0 0 12px;color:var(--text);display:flex;align-items:center;gap:8px;}
+.panel h2 .tri{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid var(--pink);}
+.hint{color:var(--muted);font-size:12px;line-height:1.5;margin:-4px 0 12px;}
+
+textarea, input[type=text], input[type=number], input[type=password], select{
+  width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);
+  font-family:'JetBrains Mono',monospace;font-size:13px;padding:10px 12px;border-radius:4px;resize:vertical;
+}
+textarea:focus, input:focus, select:focus{outline:none;border-color:var(--cyan);}
+label.field-label{display:block;font-family:'Inter',sans-serif;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px;}
+.field{margin-bottom:14px;}
+.row{display:flex;gap:14px;flex-wrap:wrap;}
+.row > .field{flex:1;min-width:160px;}
+
+button.btn{
+  font-family:'Chakra Petch',sans-serif;font-weight:600;font-size:13px;letter-spacing:.4px;
+  background:var(--cyan);color:#04141c;border:none;padding:10px 18px;border-radius:4px;cursor:pointer;text-transform:uppercase;
+  transition:.15s;
+}
+button.btn:hover{filter:brightness(1.12);}
+button.btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;}
+button.btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text);}
+button.btn.secondary:hover{border-color:var(--cyan);color:var(--cyan);}
+button.btn.danger{background:var(--red);color:#210;}
+button.btn.ghost{background:transparent;color:var(--muted);border:1px dashed var(--border);font-size:11px;padding:6px 10px;}
+
+.mode-toggle{display:flex;gap:8px;margin-bottom:16px;}
+.mode-toggle button{flex:1;}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.chip{
+  font-family:'Inter';font-size:12px;background:var(--panel2);border:1px solid var(--border);color:var(--muted);
+  padding:6px 12px;border-radius:100px;cursor:pointer;transition:.15s;
+}
+.chip:hover{border-color:var(--cyan);color:var(--cyan);}
+
+/* progress */
+#progress-wrap{display:none;margin-top:16px;}
+#progress-wrap.show{display:block;}
+.progress-label{display:flex;justify-content:space-between;font-family:'JetBrains Mono';font-size:12px;color:var(--muted);margin-bottom:6px;}
+.progress-track{position:relative;height:10px;background:var(--panel2);border:1px solid var(--border);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--pink),var(--cyan));width:0%;transition:width .3s ease;position:relative;}
+.progress-fill::after{content:'';position:absolute;right:-8px;top:-3px;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:8px solid var(--cyan);}
+#pipeline-log{margin-top:12px;max-height:150px;overflow-y:auto;font-family:'JetBrains Mono';font-size:11.5px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px;}
+#pipeline-log div{padding:2px 0;}
+#pipeline-log div.err{color:var(--red);}
+#pipeline-log div.ok{color:var(--lime);}
+
+.queue-stat{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:4px;}
+.queue-stat .num{font-family:'Chakra Petch';font-size:26px;font-weight:700;color:var(--cyan);}
+.queue-stat .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+
+/* memory list */
+.mem-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;background:var(--panel2);border:1px solid var(--border);border-radius:4px;margin-bottom:6px;font-family:'JetBrains Mono';font-size:12.5px;}
+.mem-item button{background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;}
+
+/* results table */
+.controls-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;}
+.controls-bar .field{flex:1;min-width:150px;margin-bottom:0;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+thead th{
+  text-align:left;font-family:'Chakra Petch';font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--muted);border-bottom:1px solid var(--border);padding:8px 8px;position:sticky;top:0;background:var(--panel);
+}
+tbody td{padding:8px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
+tbody tr:hover{background:rgba(76,224,255,.03);}
+.cell-quote{width:100%;min-width:200px;background:transparent;border:1px solid transparent;color:var(--text);font-family:'JetBrains Mono';font-size:12.5px;padding:4px 6px;border-radius:3px;resize:vertical;}
+.cell-quote:hover, .cell-quote:focus{background:var(--panel2);border-color:var(--border);outline:none;}
+.ref-cell{max-width:160px;}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:100px;font-family:'Inter';font-weight:600;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap;}
+.badge.yes{background:rgba(158,255,110,.15);color:var(--lime);}
+.badge.no{background:rgba(255,92,92,.15);color:var(--red);}
+.badge.unknown{background:rgba(255,184,76,.15);color:var(--amber);}
+.pill{display:inline-block;font-size:10.5px;padding:3px 9px;border-radius:100px;font-family:'Chakra Petch';font-weight:600;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap;}
+.pill.PERFECT{background:rgba(158,255,110,.15);color:var(--lime);}
+.pill.MINOR_EDIT{background:rgba(76,224,255,.15);color:var(--cyan);}
+.pill.REWRITE{background:rgba(255,184,76,.15);color:var(--amber);}
+.pill.REMOVE{background:rgba(255,92,92,.15);color:var(--red);}
+.pill.none{background:transparent;color:var(--muted);border:1px dashed var(--border);}
+.scores-mini{font-family:'JetBrains Mono';font-size:11px;color:var(--muted);white-space:nowrap;}
+.scores-mini b{color:var(--text);}
+.composite{font-family:'Chakra Petch';font-weight:700;font-size:15px;color:var(--cyan);}
+.suggestion-text{font-size:11.5px;color:var(--muted);display:block;margin-bottom:4px;max-width:220px;}
+.row-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.row-actions button{font-size:10.5px;padding:4px 8px;}
+.empty-state{color:var(--muted);text-align:center;padding:40px 0;font-size:13px;}
+
+.table-wrap{max-height:560px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;}
+
+footer.export-preview{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:12px;font-family:'JetBrains Mono';font-size:12px;color:var(--muted);max-height:220px;overflow-y:auto;white-space:pre-wrap;}
+
+@media (max-width:720px){
+  header{flex-wrap:wrap;}
+  nav.tabs{margin-left:0;}
+}
+
+/* toast notifications */
+#toast-wrap{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{
+  font-family:'Inter';font-size:12.5px;background:var(--panel2);border:1px solid var(--border);border-left:3px solid var(--cyan);
+  color:var(--text);padding:10px 14px;border-radius:4px;max-width:320px;box-shadow:0 4px 14px rgba(0,0,0,.4);
+  animation:toastIn .2s ease;
+}
+.toast.err{border-left-color:var(--red);}
+.toast.ok{border-left-color:var(--lime);}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+.est-text{font-size:11.5px;color:var(--muted);margin-top:8px;}
+.bulk-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="spike"></div>
+    <div class="brand">
+      <h1>QUOTE <span>FACTORY</span></h1>
+      <p>Geometry Dash death-quote production line — generate, verify, review, export.</p>
+    </div>
+    <nav class="tabs">
+      <button data-tab="input" class="active">Input</button>
+      <button data-tab="memory">Best Examples</button>
+      <button data-tab="results">Results</button>
+      <button data-tab="export">Export</button>
+    </nav>
+  </header>
+
+  <!-- custom confirm modal (kept from the original — a native confirm() is
+       still fine standalone, but this stays consistent with the rest of the UI) -->
+  <div id="confirm-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:20px;max-width:360px;width:90%;">
+      <p id="confirm-modal-text" style="margin:0 0 16px;font-size:13.5px;line-height:1.5;"></p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn secondary" id="confirm-modal-cancel">Cancel</button>
+        <button class="btn danger" id="confirm-modal-ok">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= INPUT TAB ================= -->
+  <section id="tab-input" class="tab active">
+
+    <div class="panel">
+      <h2><span class="tri"></span>AI Provider Settings</h2>
+      <p class="hint">Quote Factory runs fully standalone — generation and review call whichever AI provider you configure here (or in <code>config.js</code>). Pick a provider, fill in a model/API key if it needs one, and save. Local providers (Ollama, LM Studio) need no key but must be running on your machine.</p>
+      <div class="row">
+        <div class="field">
+          <label class="field-label">Provider</label>
+          <select id="provider-select"></select>
+        </div>
+        <div class="field">
+          <label class="field-label">Model</label>
+          <input type="text" id="provider-model" placeholder="model name">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field" style="flex:2;">
+          <label class="field-label">Base URL</label>
+          <input type="text" id="provider-baseurl" placeholder="API base URL">
+        </div>
+        <div class="field" id="apikey-field">
+          <label class="field-label">API key</label>
+          <input type="password" id="provider-apikey" placeholder="sk-...">
+        </div>
+      </div>
+      <p class="hint" id="provider-notes" style="margin-top:-6px;"></p>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;">
+          <input type="checkbox" id="remember-key" style="width:auto;"> Remember on this device
+        </label>
+        <button class="btn secondary" onclick="saveProviderSettings()">Save settings</button>
+        <button class="btn ghost" onclick="clearProviderSettings()">Reset to config.js defaults</button>
+      </div>
+      <div style="margin-top:10px;">
+        <span id="key-status" style="font-size:12px;color:var(--muted);display:block;"></span>
+        <span id="websearch-status" style="font-size:12px;color:var(--muted);display:block;"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="tri"></span>Load quotes</h2>
+      <div class="mode-toggle">
+        <button class="btn secondary active" id="mode-btn-review" onclick="setMode('review')">Review existing quotes</button>
+        <button class="btn secondary" id="mode-btn-generate" onclick="setMode('generate')">Generate new quotes</button>
+      </div>
+
+      <div id="mode-review">
+        <p class="hint">Paste your existing quotes below, one per line. They'll be queued for the review pipeline — nothing is scored until you click "Run Review Pipeline".</p>
+        <div class="field">
+          <textarea id="review-input" rows="8" placeholder="Can you feel the sunshine? Your attempt just got harvested&#10;Silly rabbit, wins are for skilled players&#10;..."></textarea>
+        </div>
+        <button class="btn" onclick="loadReviewQuotes()">Queue these quotes</button>
+      </div>
+
+      <div id="mode-generate" style="display:none;">
+        <p class="hint">Pick a theme (or leave blank / hit Surprise Me), set an amount, and generate. Generated quotes are queued the same as pasted ones — run the review pipeline afterward to score and verify them.</p>
+        <div class="chips">
+          <span class="chip" onclick="setTheme('classic video games')">Video games</span>
+          <span class="chip" onclick="setTheme('internet memes')">Memes</span>
+          <span class="chip" onclick="setTheme('TV commercials and jingles')">Commercials</span>
+          <span class="chip" onclick="setTheme('creepypastas and internet horror')">Creepypasta</span>
+          <span class="chip" onclick="setTheme('cartoons and animated shows')">Cartoons</span>
+          <span class="chip" onclick="setTheme('general internet culture')">Internet culture</span>
+          <span class="chip" onclick="setTheme('')">Surprise me — mix everything</span>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:2;">
+            <label class="field-label">Theme / reference pool</label>
+            <input type="text" id="gen-theme" placeholder="e.g. 90s video games, or leave blank for surprise me">
+          </div>
+          <div class="field">
+            <label class="field-label">Amount to generate</label>
+            <input type="number" id="gen-amount" value="20" min="1" max="500">
+          </div>
+        </div>
+        <button class="btn" onclick="runGenerate()" id="btn-generate">Generate quotes</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="tri"></span>Production queue</h2>
+      <div class="queue-stat">
+        <div><div class="num" id="stat-pending">0</div><div class="lbl">Pending review</div></div>
+        <div><div class="num" id="stat-reviewed">0</div><div class="lbl">Reviewed</div></div>
+        <div><div class="num" id="stat-total">0</div><div class="lbl">Total in factory</div></div>
+      </div>
+      <div class="row" style="margin-top:14px;">
+        <div class="field" style="max-width:140px;">
+          <label class="field-label">Review batch size</label>
+          <input type="number" id="review-batch-size" value="8" min="3" max="15" oninput="updatePipelineEstimate()">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn" id="btn-run-pipeline" onclick="runPipeline()">Run review pipeline</button>
+        <button class="btn secondary" id="btn-stop-pipeline" onclick="stopPipeline()" style="display:none;">Stop</button>
+        <button class="btn ghost" onclick="clearFactory()">Clear entire factory</button>
+      </div>
+      <div class="est-text" id="pipeline-estimate"></div>
+
+      <div id="progress-wrap">
+        <div class="progress-label"><span id="progress-text">Batch 0/0</span><span id="progress-pct">0%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        <div id="pipeline-log"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MEMORY TAB ================= -->
+  <section id="tab-memory" class="tab">
+    <div class="panel">
+      <h2><span class="tri"></span>Best example quotes</h2>
+      <p class="hint">These are shown to the generator and reviewer as style calibration on every batch — short, recognizable, accurate, punchline = player failure. Saved permanently, no need to re-add each session.</p>
+      <div class="field">
+        <textarea id="memory-input" rows="3" placeholder="One example per line"></textarea>
+      </div>
+      <button class="btn" onclick="addMemory()">Add to best examples</button>
+      <div id="memory-list" style="margin-top:16px;"></div>
+    </div>
+  </section>
+
+  <!-- ================= RESULTS TAB ================= -->
+  <section id="tab-results" class="tab">
+    <div class="panel">
+      <h2><span class="tri"></span>Results</h2>
+      <div class="controls-bar">
+        <div class="field">
+          <label class="field-label">Search</label>
+          <input type="text" id="filter-search" placeholder="quote or reference..." oninput="renderResults()">
+        </div>
+        <div class="field">
+          <label class="field-label">Category</label>
+          <select id="filter-category" onchange="renderResults()">
+            <option value="All">All</option>
+            <option value="Unreviewed">Unreviewed</option>
+            <option value="PERFECT">Perfect</option>
+            <option value="MINOR EDIT">Minor edit</option>
+            <option value="REWRITE">Rewrite</option>
+            <option value="REMOVE">Remove</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Verified</label>
+          <select id="filter-verified" onchange="renderResults()">
+            <option value="All">All</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="unknown">Unknown</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Sort by</label>
+          <select id="sort-by" onchange="renderResults()">
+            <option value="score">Composite score</option>
+            <option value="category">Category</option>
+            <option value="alpha">Alphabetical</option>
+          </select>
+        </div>
+        <div class="field" style="max-width:130px;">
+          <label class="field-label">Top picks (N)</label>
+          <input type="number" id="top-picks-n" value="20" min="1" max="500">
+        </div>
+        <button class="btn secondary" id="btn-top-picks" onclick="toggleTopPicks()">Top picks: off</button>
+      </div>
+      <div class="bulk-actions">
+        <button class="btn ghost" onclick="acceptAllSuggestions()">Accept all visible suggestions</button>
+        <button class="btn ghost" onclick="deleteAllRemoved()">Delete all REMOVE quotes</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:26%;">Quote</th>
+              <th style="width:13%;">Reference</th>
+              <th>Scores</th>
+              <th>Category</th>
+              <th style="width:16%;">Suggestion</th>
+              <th style="width:12%;">Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="results-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= EXPORT TAB ================= -->
+  <section id="tab-export" class="tab">
+    <div class="panel">
+      <h2><span class="tri"></span>Export</h2>
+      <p class="hint">Exports include every reviewed quote that isn't categorized REMOVE. If you accepted a suggestion, the improved text is exported — otherwise the original.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+        <button class="btn" onclick="doExport('clean')">Export clean (.txt)</button>
+        <button class="btn secondary" onclick="doExport('refs')">Export with references</button>
+        <button class="btn secondary" onclick="doExport('scores')">Export with scores</button>
+        <button class="btn ghost" onclick="copyExport('clean')">Copy clean to clipboard</button>
+      </div>
+      <label class="field-label">Preview (clean format)</label>
+      <footer class="export-preview" id="export-preview">Nothing to export yet.</footer>
+    </div>
+  </section>
+
+</div>
+
+<div id="toast-wrap"></div>
+
+<script>
+
+
+/* ===================== config.js ===================== */
+/* =========================================================
+   QUOTE FACTORY — PROVIDER CONFIGURATION
+   =========================================================
+   This is the ONE file you need to edit to change which AI
+   backend Quote Factory uses. Everything else in the app
+   talks to providers.js, which reads these values.
+
+   You can also override `provider`, `apiKey`, `model`, and
+   `baseUrl` at runtime from the Settings tab in the app —
+   anything you save there takes priority over this file for
+   your current browser. Edit this file when you want to set
+   the defaults everyone (or every fresh browser profile) gets.
+
+   Supported provider keys: "anthropic", "openai", "gemini",
+   "openrouter", "ollama", "lmstudio"
+   ========================================================= */
+
+window.QUOTE_FACTORY_CONFIG = {
+
+  // Which provider to use by default, until overridden in Settings.
+  provider: "anthropic",
+
+  providers: {
+
+    anthropic: {
+      label: "Anthropic (Claude)",
+      apiKey: "",                    // sk-ant-...
+      model: "claude-sonnet-4-6",
+      baseUrl: "https://api.anthropic.com/v1/messages",
+      requiresApiKey: true,
+      supportsWebSearch: true,
+      notes: "Uses Anthropic's native web_search tool for reference verification."
+    },
+
+    openai: {
+      label: "OpenAI",
+      apiKey: "",                    // sk-...
+      model: "gpt-4o",
+      baseUrl: "https://api.openai.com/v1/chat/completions",
+      requiresApiKey: true,
+      supportsWebSearch: false,
+      notes: "No built-in web search — the model relies on its own knowledge to judge references."
+    },
+
+    gemini: {
+      label: "Google Gemini",
+      apiKey: "",                    // AIza...
+      model: "gemini-2.5-flash",
+      baseUrl: "https://generativelanguage.googleapis.com/v1beta/models",
+      requiresApiKey: true,
+      supportsWebSearch: true,
+      notes: "Uses Gemini's Google Search grounding tool for reference verification."
+    },
+
+    openrouter: {
+      label: "OpenRouter",
+      apiKey: "",                    // sk-or-...
+      model: "anthropic/claude-3.5-sonnet",
+      baseUrl: "https://openrouter.ai/api/v1/chat/completions",
+      requiresApiKey: true,
+      supportsWebSearch: false,
+      notes: "Model choice depends on what you set here — see openrouter.ai/models."
+    },
+
+    ollama: {
+      label: "Ollama (local)",
+      apiKey: "",
+      model: "llama3.1",
+      baseUrl: "http://localhost:11434/api/chat",
+      requiresApiKey: false,
+      supportsWebSearch: false,
+      notes: "Runs fully local. Start Ollama and 'ollama pull <model>' first. No web search."
+    },
+
+    lmstudio: {
+      label: "LM Studio (local)",
+      apiKey: "",
+      model: "local-model",
+      baseUrl: "http://localhost:1234/v1/chat/completions",
+      requiresApiKey: false,
+      supportsWebSearch: false,
+      notes: "Runs fully local via LM Studio's OpenAI-compatible server. No web search."
+    }
+  }
+};
+
+
+/* ===================== storage.js ===================== */
+/* =========================================================
+   STORAGE SHIM
+   =========================================================
+   Quote Factory was originally built for Claude Artifacts,
+   which provides an async window.storage key/value API.
+   This file re-implements that exact same interface — get,
+   set, delete — on top of plain browser localStorage, so the
+   rest of the app (storage.js callers in app.js) needs zero
+   changes.
+
+   Everything is namespaced under "qf:" so it won't collide
+   with anything else on the page or origin.
+
+   If localStorage is unavailable (e.g. private browsing modes
+   that disable it, or file:// restrictions in some browsers),
+   calls fail gracefully and the app falls back to in-memory
+   only, matching the original app's try/catch-and-continue
+   behavior around every storage call.
+   ========================================================= */
+
+(function () {
+  const PREFIX = "qf:";
+
+  function isAvailable() {
+    try {
+      const testKey = PREFIX + "__test__";
+      localStorage.setItem(testKey, "1");
+      localStorage.removeItem(testKey);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  const available = isAvailable();
+  if (!available) {
+    console.warn(
+      "Quote Factory: localStorage is not available in this browser context. " +
+      "Data will not persist between page loads."
+    );
+  }
+
+  window.storage = {
+    async get(key /*, shared */) {
+      if (!available) return null;
+      const raw = localStorage.getItem(PREFIX + key);
+      if (raw === null) return null;
+      return { key, value: raw, shared: false };
+    },
+
+    async set(key, value /*, shared */) {
+      if (!available) return null;
+      localStorage.setItem(PREFIX + key, value);
+      return { key, value, shared: false };
+    },
+
+    async delete(key /*, shared */) {
+      if (!available) return null;
+      const existed = localStorage.getItem(PREFIX + key) !== null;
+      localStorage.removeItem(PREFIX + key);
+      return { key, deleted: existed, shared: false };
+    },
+
+    async list(prefix /*, shared */) {
+      if (!available) return { keys: [] };
+      const keys = [];
+      const fullPrefix = PREFIX + (prefix || "");
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(fullPrefix)) {
+          keys.push(k.slice(PREFIX.length));
+        }
+      }
+      return { keys, prefix: prefix || undefined, shared: false };
+    }
+  };
+})();
+
+
+/* ===================== providers.js ===================== */
+/* =========================================================
+   PROVIDER ABSTRACTION LAYER
+   =========================================================
+   Everything above this file (app.js) calls one function:
+
+       await callAI({ system, userText, useTools, maxTokens })
+
+   and gets back { text, usedWebSearch }. This file is the
+   only place that knows about per-provider request/response
+   shapes. To add a new provider: write a `callX()` function
+   below with the same signature, add it to PROVIDER_IMPL, and
+   add its defaults to config.js.
+   ========================================================= */
+
+function getActiveSettings() {
+  // Runtime overrides saved from the Settings tab win over config.js.
+  const override = window.__qfRuntimeSettings || null;
+  const cfg = window.QUOTE_FACTORY_CONFIG;
+  const providerKey = (override && override.provider) || cfg.provider;
+  const base = cfg.providers[providerKey];
+  if (!base) {
+    throw new Error(`Unknown provider "${providerKey}" — check config.js / Settings.`);
+  }
+  const merged = Object.assign({}, base, override && override.provider === providerKey ? override : {});
+  return { providerKey, settings: merged };
+}
+
+async function callAI({ system, userText, useTools, maxTokens }) {
+  const { providerKey, settings } = getActiveSettings();
+  const impl = PROVIDER_IMPL[providerKey];
+  if (!impl) throw new Error(`No implementation registered for provider "${providerKey}".`);
+  if (settings.requiresApiKey && !settings.apiKey) {
+    throw new Error(
+      `${settings.label || providerKey} requires an API key. Add one in the Settings tab, or edit config.js.`
+    );
+  }
+  return impl({ system, userText, useTools: !!useTools && !!settings.supportsWebSearch, maxTokens: maxTokens || 1000, settings });
+}
+
+/* ---------------------------------------------------------
+   ANTHROPIC
+   --------------------------------------------------------- */
+async function callAnthropic({ system, userText, useTools, maxTokens, settings }) {
+  const body = {
+    model: settings.model,
+    max_tokens: maxTokens,
+    system,
+    messages: [{ role: "user", content: userText }]
+  };
+  if (useTools) {
+    body.tools = [{ type: "web_search_20250305", name: "web_search" }];
+  }
+  const headers = {
+    "Content-Type": "application/json",
+    "x-api-key": settings.apiKey,
+    "anthropic-version": "2023-06-01",
+    "anthropic-dangerous-direct-browser-access": "true"
+  };
+  const res = await fetchJson(settings.baseUrl, headers, body, "Anthropic");
+  if (res.error) throw new Error(res.error.message || "Anthropic API error");
+  const text = (res.content || []).filter(b => b.type === "text").map(b => b.text).join("\n");
+  if (res.stop_reason === "max_tokens") {
+    throw new Error("Response was cut off before finishing (ran out of output length) — try a smaller batch size.");
+  }
+  return { text };
+}
+
+/* ---------------------------------------------------------
+   OPENAI (Chat Completions)
+   --------------------------------------------------------- */
+async function callOpenAI({ system, userText, maxTokens, settings }) {
+  const body = {
+    model: settings.model,
+    max_tokens: maxTokens,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: userText }
+    ]
+  };
+  const headers = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${settings.apiKey}`
+  };
+  const res = await fetchJson(settings.baseUrl, headers, body, "OpenAI");
+  if (res.error) throw new Error(res.error.message || "OpenAI API error");
+  const choice = (res.choices || [])[0];
+  const text = choice ? choice.message.content : "";
+  if (choice && choice.finish_reason === "length") {
+    throw new Error("Response was cut off before finishing (ran out of output length) — try a smaller batch size.");
+  }
+  return { text };
+}
+
+/* ---------------------------------------------------------
+   OPENROUTER (OpenAI-compatible)
+   --------------------------------------------------------- */
+async function callOpenRouter({ system, userText, maxTokens, settings }) {
+  const body = {
+    model: settings.model,
+    max_tokens: maxTokens,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: userText }
+    ]
+  };
+  const headers = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${settings.apiKey}`,
+    "HTTP-Referer": window.location.origin || "http://localhost",
+    "X-Title": "Quote Factory"
+  };
+  const res = await fetchJson(settings.baseUrl, headers, body, "OpenRouter");
+  if (res.error) throw new Error(res.error.message || "OpenRouter API error");
+  const choice = (res.choices || [])[0];
+  const text = choice ? choice.message.content : "";
+  if (choice && choice.finish_reason === "length") {
+    throw new Error("Response was cut off before finishing (ran out of output length) — try a smaller batch size.");
+  }
+  return { text };
+}
+
+/* ---------------------------------------------------------
+   GEMINI
+   --------------------------------------------------------- */
+async function callGemini({ system, userText, useTools, maxTokens, settings }) {
+  const url = `${settings.baseUrl}/${settings.model}:generateContent?key=${encodeURIComponent(settings.apiKey)}`;
+  const body = {
+    system_instruction: { parts: [{ text: system }] },
+    contents: [{ role: "user", parts: [{ text: userText }] }],
+    generationConfig: { maxOutputTokens: maxTokens }
+  };
+  if (useTools) {
+    body.tools = [{ google_search: {} }];
+  }
+  const headers = { "Content-Type": "application/json" };
+  const res = await fetchJson(url, headers, body, "Gemini");
+  if (res.error) throw new Error(res.error.message || "Gemini API error");
+  const candidate = (res.candidates || [])[0];
+  const parts = candidate && candidate.content ? candidate.content.parts || [] : [];
+  const text = parts.map(p => p.text || "").join("\n");
+  if (candidate && candidate.finishReason === "MAX_TOKENS") {
+    throw new Error("Response was cut off before finishing (ran out of output length) — try a smaller batch size.");
+  }
+  return { text };
+}
+
+/* ---------------------------------------------------------
+   OLLAMA (local)
+   --------------------------------------------------------- */
+async function callOllama({ system, userText, maxTokens, settings }) {
+  const body = {
+    model: settings.model,
+    stream: false,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: userText }
+    ],
+    options: { num_predict: maxTokens }
+  };
+  const headers = { "Content-Type": "application/json" };
+  let res;
+  try {
+    res = await fetchJson(settings.baseUrl, headers, body, "Ollama");
+  } catch (e) {
+    throw new Error(
+      `Could not reach Ollama at ${settings.baseUrl}. Is Ollama running locally? (${e.message})`
+    );
+  }
+  if (res.error) throw new Error(res.error);
+  const text = res.message ? res.message.content : "";
+  return { text };
+}
+
+/* ---------------------------------------------------------
+   LM STUDIO (local, OpenAI-compatible)
+   --------------------------------------------------------- */
+async function callLMStudio({ system, userText, maxTokens, settings }) {
+  const body = {
+    model: settings.model,
+    max_tokens: maxTokens,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: userText }
+    ]
+  };
+  const headers = { "Content-Type": "application/json" };
+  if (settings.apiKey) headers["Authorization"] = `Bearer ${settings.apiKey}`;
+  let res;
+  try {
+    res = await fetchJson(settings.baseUrl, headers, body, "LM Studio");
+  } catch (e) {
+    throw new Error(
+      `Could not reach LM Studio at ${settings.baseUrl}. Is the local server running? (${e.message})`
+    );
+  }
+  if (res.error) throw new Error(res.error.message || "LM Studio API error");
+  const choice = (res.choices || [])[0];
+  const text = choice ? choice.message.content : "";
+  return { text };
+}
+
+/* ---------------------------------------------------------
+   shared fetch helper
+   --------------------------------------------------------- */
+function redactUrl(url){
+  // Hide API keys / secrets that show up as query params (e.g. Gemini's ?key=...)
+  // while keeping the rest of the URL visible for debugging.
+  try{
+    const u = new URL(url);
+    u.searchParams.forEach((v, k) => {
+      if(/key|token|secret/i.test(k)) u.searchParams.set(k, '[redacted]');
+    });
+    return u.toString();
+  }catch(e){
+    return url;
+  }
+}
+
+async function fetchJson(url, headers, body, providerLabel) {
+  const safeUrl = redactUrl(url);
+  let res;
+  try {
+    res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
+  } catch (networkErr) {
+    throw new Error(
+      `Network request to ${providerLabel} failed (possibly CORS, connectivity, or an ad/privacy blocker). ` +
+      `URL attempted: ${safeUrl} — ${networkErr.message}`
+    );
+  }
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    throw new Error(`${providerLabel} returned a non-JSON response (HTTP ${res.status}) from ${safeUrl}.`);
+  }
+  if (!res.ok && !data.error) {
+    throw new Error(`${providerLabel} API error (HTTP ${res.status}) from ${safeUrl}.`);
+  }
+  return data;
+}
+
+const PROVIDER_IMPL = {
+  anthropic: callAnthropic,
+  openai: callOpenAI,
+  openrouter: callOpenRouter,
+  gemini: callGemini,
+  ollama: callOllama,
+  lmstudio: callLMStudio
+};
+
+
+/* ===================== app.js ===================== */
+/* =========================================================
+   STATE
+   ========================================================= */
+let quotes = [];          // working set
+let examples = [];        // best-example calibration quotes
+let idCounter = 1;
+let topPicksMode = false;
+let cancelRequested = false;
+let pipelineRunning = false;
+
+const DEFAULT_EXAMPLES = [
+  "Can you feel the sunshine? Your attempt just got harvested",
+  "Silly rabbit, wins are for skilled players",
+  "Follow your nose straight into a spike, loser",
+  "There G-r-r-eat, except for your garbage reaction time"
+];
+
+/* =========================================================
+   INIT
+   ========================================================= */
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadSettings();
+  await loadMemory();
+  await loadQuotesFromStorage();
+  renderSettingsForm();
+  renderMemoryList();
+  renderQueueStats();
+  renderResults();
+  renderExportPreview();
+  updatePipelineEstimate();
+});
+
+/* =========================================================
+   TOASTS
+   ========================================================= */
+function showToast(msg, type){
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' '+type : '');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 4200);
+}
+
+/* =========================================================
+   WORKING QUEUE PERSISTENCE
+   (so a refresh doesn't lose your quotes mid-pipeline)
+   ========================================================= */
+async function loadQuotesFromStorage(){
+  try{
+    const r = await window.storage.get('quotes-data', false);
+    if(r && r.value){
+      const parsed = JSON.parse(r.value);
+      quotes = parsed.quotes || [];
+      idCounter = parsed.idCounter || (quotes.length+1);
+      if(quotes.length) showToast(`Restored ${quotes.length} quotes from your last session.`);
+    }
+  }catch(e){ /* nothing saved yet */ }
+}
+let saveQuotesTimer = null;
+function persistQuotes(){
+  clearTimeout(saveQuotesTimer);
+  saveQuotesTimer = setTimeout(async ()=>{
+    try{ await window.storage.set('quotes-data', JSON.stringify({quotes, idCounter}), false); }
+    catch(e){ console.error('could not persist quotes', e); }
+  }, 400);
+}
+function showConfirm(message){
+  return new Promise(resolve=>{
+    const backdrop = document.getElementById('confirm-modal-backdrop');
+    const textEl = document.getElementById('confirm-modal-text');
+    const okBtn = document.getElementById('confirm-modal-ok');
+    const cancelBtn = document.getElementById('confirm-modal-cancel');
+    textEl.textContent = message;
+    backdrop.style.display = 'flex';
+    function cleanup(result){
+      backdrop.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      resolve(result);
+    }
+    function onOk(){ cleanup(true); }
+    function onCancel(){ cleanup(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+  });
+}
+
+async function clearFactory(){
+  if(!quotes.length){ showToast('Factory is already empty.'); return; }
+  const ok = await showConfirm(`Delete all ${quotes.length} quotes from the working queue? This can't be undone.`);
+  if(!ok) return;
+  quotes = [];
+  idCounter = 1;
+  try{ await window.storage.delete('quotes-data', false); }catch(e){}
+  renderQueueStats();
+  renderResults();
+  renderExportPreview();
+  updatePipelineEstimate();
+  showToast('Factory cleared.');
+}
+
+/* =========================================================
+   PROVIDER SETTINGS
+   (persisted locally; falls back to config.js defaults)
+   ========================================================= */
+async function loadSettings(){
+  try{
+    const r = await window.storage.get('qf-settings', false);
+    if(r && r.value){
+      window.__qfRuntimeSettings = JSON.parse(r.value);
+    }
+  }catch(e){ /* nothing saved, use config.js defaults */ }
+}
+
+function currentProviderKey(){
+  return (window.__qfRuntimeSettings && window.__qfRuntimeSettings.provider) || window.QUOTE_FACTORY_CONFIG.provider;
+}
+function currentProviderDefaults(key){
+  return window.QUOTE_FACTORY_CONFIG.providers[key];
+}
+function currentProviderEffective(key){
+  const base = currentProviderDefaults(key);
+  const override = window.__qfRuntimeSettings;
+  if(override && override.provider === key){
+    return Object.assign({}, base, override);
+  }
+  return base;
+}
+
+function renderSettingsForm(){
+  const select = document.getElementById('provider-select');
+  const providers = window.QUOTE_FACTORY_CONFIG.providers;
+  select.innerHTML = Object.keys(providers).map(key =>
+    `<option value="${key}">${escapeHtml(providers[key].label || key)}</option>`
+  ).join('');
+  const activeKey = currentProviderKey();
+  select.value = activeKey;
+  applyProviderToForm(activeKey);
+  select.onchange = () => applyProviderToForm(select.value);
+}
+
+function applyProviderToForm(key){
+  const eff = currentProviderEffective(key);
+  document.getElementById('provider-model').value = eff.model || '';
+  document.getElementById('provider-baseurl').value = eff.baseUrl || '';
+  document.getElementById('provider-apikey').value = eff.apiKey || '';
+  const apiKeyField = document.getElementById('apikey-field');
+  apiKeyField.style.display = eff.requiresApiKey ? '' : 'none';
+  document.getElementById('provider-notes').textContent = eff.notes || '';
+  document.getElementById('websearch-status').textContent = eff.supportsWebSearch
+    ? 'Reference verification uses live web search.'
+    : 'Reference verification relies on the model\u2019s own knowledge only (no web search for this provider).';
+  updateKeyStatus();
+}
+
+function updateKeyStatus(){
+  const key = currentProviderKey();
+  const eff = currentProviderEffective(key);
+  const el = document.getElementById('key-status');
+  el.textContent = `Active provider: ${eff.label || key} \u2014 model "${eff.model}".`;
+}
+
+async function saveProviderSettings(){
+  const provider = document.getElementById('provider-select').value;
+  const model = document.getElementById('provider-model').value.trim();
+  const baseUrl = document.getElementById('provider-baseurl').value.trim();
+  const apiKey = document.getElementById('provider-apikey').value.trim();
+  const remember = document.getElementById('remember-key').checked;
+
+  const settings = { provider, model, baseUrl, apiKey };
+  window.__qfRuntimeSettings = settings;
+
+  if(remember){
+    try{ await window.storage.set('qf-settings', JSON.stringify(settings), false); }
+    catch(e){ console.error('could not save settings', e); }
+  } else {
+    try{ await window.storage.delete('qf-settings', false); }catch(e){}
+  }
+  updateKeyStatus();
+  showToast('Provider settings saved.', 'ok');
+}
+
+async function clearProviderSettings(){
+  window.__qfRuntimeSettings = null;
+  try{ await window.storage.delete('qf-settings', false); }catch(e){}
+  renderSettingsForm();
+  showToast('Reverted to config.js defaults.');
+}
+
+/* =========================================================
+   TAB / MODE SWITCHING
+   ========================================================= */
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab==='results') renderResults();
+    if (btn.dataset.tab==='export') renderExportPreview();
+  });
+});
+
+function setMode(mode){
+  document.getElementById('mode-btn-review').classList.toggle('active', mode==='review');
+  document.getElementById('mode-btn-generate').classList.toggle('active', mode==='generate');
+  document.getElementById('mode-review').style.display = mode==='review' ? 'block':'none';
+  document.getElementById('mode-generate').style.display = mode==='generate' ? 'block':'none';
+}
+
+function setTheme(t){ document.getElementById('gen-theme').value = t; }
+
+/* =========================================================
+   MEMORY (persistent best examples via window.storage)
+   ========================================================= */
+async function loadMemory(){
+  try{
+    const r = await window.storage.get('best-examples', false);
+    examples = r && r.value ? JSON.parse(r.value) : DEFAULT_EXAMPLES.slice();
+  }catch(e){
+    examples = DEFAULT_EXAMPLES.slice();
+  }
+}
+async function saveMemory(){
+  try{ await window.storage.set('best-examples', JSON.stringify(examples), false); }
+  catch(e){ console.error('storage save failed', e); }
+}
+function renderMemoryList(){
+  const box = document.getElementById('memory-list');
+  if(!examples.length){ box.innerHTML = '<div class="empty-state">No saved examples yet.</div>'; return; }
+  box.innerHTML = examples.map((ex,i)=>`
+    <div class="mem-item">
+      <span>${escapeHtml(ex)}</span>
+      <button onclick="removeMemory(${i})" title="Remove">\u2715</button>
+    </div>`).join('');
+}
+async function addMemory(){
+  const ta = document.getElementById('memory-input');
+  const lines = ta.value.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length) return;
+  examples.push(...lines);
+  ta.value = '';
+  await saveMemory();
+  renderMemoryList();
+}
+async function removeMemory(i){
+  examples.splice(i,1);
+  await saveMemory();
+  renderMemoryList();
+}
+
+/* =========================================================
+   QUOTE OBJECT HELPERS
+   ========================================================= */
+function newQuoteObj(text, reference, source){
+  return {
+    id: 'q'+(idCounter++),
+    original: text,
+    currentText: text,
+    reference: reference || '',
+    verified: 'unknown',
+    scores: null,
+    category: null,   // null = unreviewed
+    suggestion: '',
+    notes: '',
+    source: source || 'input',
+    edited: false
+  };
+}
+
+function loadReviewQuotes(){
+  const ta = document.getElementById('review-input');
+  const lines = ta.value.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length) return;
+  const existing = new Set(quotes.map(q=>q.original.toLowerCase().trim()));
+  let added = 0, skipped = 0;
+  lines.forEach(l=>{
+    const key = l.toLowerCase();
+    if(existing.has(key)){ skipped++; return; }
+    existing.add(key);
+    quotes.push(newQuoteObj(l, '', 'input'));
+    added++;
+  });
+  ta.value = '';
+  renderQueueStats();
+  showToast(skipped ? `Queued ${added} quotes (skipped ${skipped} duplicates already in the factory).` : `Queued ${added} quotes.`, 'ok');
+}
+
+function renderQueueStats(){
+  const pending = quotes.filter(q=>!q.category).length;
+  const reviewed = quotes.filter(q=>q.category).length;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-reviewed').textContent = reviewed;
+  document.getElementById('stat-total').textContent = quotes.length;
+  updatePipelineEstimate();
+  persistQuotes();
+}
+
+function updatePipelineEstimate(){
+  const el = document.getElementById('pipeline-estimate');
+  if(!el) return;
+  const pending = quotes.filter(q=>!q.category).length;
+  if(!pending){ el.textContent = 'No pending quotes to review.'; return; }
+  const batchSize = clampInt(document.getElementById('review-batch-size').value, 3, 15, 8);
+  const batches = Math.ceil(pending / batchSize);
+  el.textContent = `${pending} pending \u2192 ${batches} batch${batches===1?'':'es'} of up to ${batchSize}.`;
+}
+
+function composite(q){
+  if(!q.scores) return 0;
+  const s = q.scores;
+  return (s.accuracy + s.recognizability + s.humor + s.fit + s.originality) / 5;
+}
+
+function catClass(cat){
+  if(!cat) return 'none';
+  return cat.replace(' ','_');
+}
+
+/* =========================================================
+   AI CALL (delegates to providers.js)
+   ========================================================= */
+async function callModel(system, userText, useTools, maxTokens){
+  const { text } = await callAI({ system, userText, useTools, maxTokens });
+  return text;
+}
+
+function extractJSON(text){
+  let t = (text||'').trim();
+  t = t.replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+  const startArr = t.indexOf('[');
+  const endArr = t.lastIndexOf(']');
+  const startObj = t.indexOf('{');
+  if(startArr !== -1 && endArr !== -1){
+    t = t.slice(startArr, endArr+1);
+  } else if(startObj !== -1){
+    t = t.slice(startObj, t.lastIndexOf('}')+1);
+  }
+  return JSON.parse(t);
+}
+
+function chunk(arr, size){
+  const out = [];
+  for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i, i+size));
+  return out;
+}
+
+/* =========================================================
+   PROMPTS
+   ========================================================= */
+const STYLE_RULES = `STYLE RULES for Geometry Dash death-screen quotes:
+- One quote per line. Short is the GOAL, not a flaw — a tight 3-6 word quote is often stronger than a longer one. Never penalize a quote for being short, and never mark something REMOVE just because it's brief.
+- Usually structured as: recognizable reference -> Geometry Dash failure/choke/insult.
+- References may be games, memes, commercials/jingles, creepypastas, cartoons, or internet culture.
+- References must be REAL. Never invent a quote, character, or slogan. If unsure, verify or discard.
+- Avoid generic filler insults ("you suck", "get good") with no reference attached.
+- Never explain the joke inside the quote itself.`;
+
+function buildReviewSystemPrompt(){
+  return `You are a senior editor for "Quote Factory", reviewing Geometry Dash custom death-screen quotes for a quality pipeline.
+${STYLE_RULES}
+
+BEST EXAMPLES (calibration only — do not repeat these, they show the target bar):
+${examples.map(e=>'- '+e).join('\n')}
+
+For EACH quote given, determine:
+1. reference: short phrase naming the specific real-world thing referenced (or "none" if it's not reference-based)
+2. verified: "yes" if you are confident the reference and the specific detail used are real and accurate, "no" if it is fabricated or factually wrong, "unknown" if you searched and still couldn't confirm (or you have no way to verify). Use the web_search tool when it is available and you are not already highly confident about a reference — do not guess. Use at most 3 searches total across this whole batch, only for references you're genuinely unsure about.
+3. scores 1-5 (integers) each: accuracy, recognizability, humor, fit (how well it fits a GD death screen), originality
+4. category: "PERFECT" (keep unchanged), "MINOR EDIT" (small wording/grammar fix needed), "REWRITE" (good idea, needs real improvement), or "REMOVE" (only when truly unsalvageable — reference is fake/wrong, or it's generic filler with nothing worth keeping)
+   Bias toward REWRITE over REMOVE: if there's a real, verifiable reference and any usable idea at all, try to fix it rather than discarding it — brevity, a rough punchline, or a slightly weak line are all fixable, not removable. Only use REMOVE as a last resort.
+5. suggestion: required (non-empty) for "MINOR EDIT" and "REWRITE" — a concise improved version preserving the original idea and reference, max 15 words, no joke explanation, and it does NOT need to be longer than the original (short fixes are fine). Empty string only for "PERFECT" or genuine "REMOVE".
+6. notes: max 10 words — e.g. what you verified, or why it was removed.
+
+Respond with ONLY a raw JSON array, no markdown fences, no prose before or after, in exactly this shape:
+[{"id":"q1","reference":"...","verified":"yes","scores":{"accuracy":5,"recognizability":4,"humor":3,"fit":4,"originality":3},"category":"PERFECT","suggestion":"","notes":"..."}]
+Every quote you're given must appear exactly once in the output, matched by its id.`;
+}
+
+function buildGenerateSystemPrompt(theme){
+  const themeLine = theme && theme.trim()
+    ? `Theme / reference pool for this batch: ${theme}`
+    : `No fixed theme — surprise me. Mix varied real references across video games, memes, commercials/jingles, creepypastas, cartoons, and internet culture.`;
+  return `You are the generator for "Quote Factory", writing Geometry Dash custom death-screen quotes.
+${STYLE_RULES}
+${themeLine}
+
+BEST EXAMPLES (calibration only — do not repeat these):
+${examples.map(e=>'- '+e).join('\n')}
+
+Only use references you are confident are real. If you are not sure a specific detail (line, slogan, character trait) is accurate, use the web_search tool when it is available to check, or pick a different real reference instead — never fabricate one. Use at most 3 searches for this batch.
+Make each quote distinct from the others in this batch (vary the references and the structure).
+
+Respond with ONLY a raw JSON array, no markdown fences, no prose, in exactly this shape:
+[{"text":"...","reference":"..."}]`;
+}
+
+/* =========================================================
+   PIPELINE PROGRESS UI
+   ========================================================= */
+function showProgress(total, label){
+  document.getElementById('progress-wrap').classList.add('show');
+  document.getElementById('progress-text').textContent = `${label} 0/${total}`;
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('progress-pct').textContent = '0%';
+  document.getElementById('pipeline-log').innerHTML = '';
+}
+function updateProgress(done, total, label){
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('progress-text').textContent = `${label} ${done}/${total}`;
+  document.getElementById('progress-fill').style.width = pct+'%';
+  document.getElementById('progress-pct').textContent = pct+'%';
+}
+function logLine(msg, cls){
+  const log = document.getElementById('pipeline-log');
+  const div = document.createElement('div');
+  if(cls) div.className = cls;
+  div.textContent = msg;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+/* =========================================================
+   REVIEW PIPELINE
+   ========================================================= */
+async function runPipeline(){
+  if(pipelineRunning) return;
+  const pending = quotes.filter(q=>!q.category);
+  if(!pending.length){ showToast('Nothing pending — load or generate quotes first.'); return; }
+
+  const batchSize = clampInt(document.getElementById('review-batch-size').value, 3, 15, 8);
+  const batches = chunk(pending, batchSize);
+
+  pipelineRunning = true;
+  cancelRequested = false;
+  toggleRunButtons(true);
+  showProgress(batches.length, 'Batch');
+
+  for(let i=0;i<batches.length;i++){
+    if(cancelRequested){ logLine('Stopped by user.', 'err'); break; }
+    updateProgress(i, batches.length, 'Batch');
+    try{
+      const results = await reviewBatch(batches[i]);
+      applyReviewResults(results);
+      logLine(`Batch ${i+1}/${batches.length}: reviewed ${results.length} quotes`, 'ok');
+    }catch(e){
+      logLine(`Batch ${i+1}/${batches.length}: FAILED — ${e.message}. These stay pending, re-run the pipeline to retry.`, 'err');
+    }
+    updateProgress(i+1, batches.length, 'Batch');
+    renderQueueStats();
+  }
+  logLine(pending.length ? 'Pipeline finished.' : 'Nothing to review.');
+  if(pending.length && !cancelRequested) showToast('Review pipeline finished.', 'ok');
+  pipelineRunning = false;
+  toggleRunButtons(false);
+  renderQueueStats();
+  renderResults();
+}
+
+function stopPipeline(){ cancelRequested = true; }
+
+function toggleRunButtons(running){
+  document.getElementById('btn-run-pipeline').disabled = running;
+  document.getElementById('btn-generate').disabled = running;
+  document.getElementById('btn-stop-pipeline').style.display = running ? 'inline-block' : 'none';
+}
+
+async function reviewBatch(batch){
+  const system = buildReviewSystemPrompt();
+  const userPayload = batch.map(q=>({id:q.id, text:q.currentText}));
+  // Each reviewed quote is a verbose JSON object (reference, verified, 5 scores,
+  // category, suggestion, notes), and the model may also spend tokens on up to
+  // 3 web searches — budget generously so output isn't cut off mid-JSON.
+  const maxTokens = Math.min(8000, 600 + batch.length * 220);
+  const text = await callModel(system, JSON.stringify(userPayload), true, maxTokens);
+  let parsed;
+  try{
+    parsed = extractJSON(text);
+  }catch(e){
+    throw new Error('JSON parse failed — the model\'s response was malformed. Re-running this batch usually fixes it.');
+  }
+  if(!Array.isArray(parsed)) throw new Error('unexpected response shape');
+  return parsed;
+}
+
+function applyReviewResults(results){
+  const byId = {};
+  results.forEach(r=> byId[r.id] = r);
+  quotes.forEach(q=>{
+    const r = byId[q.id];
+    if(!r) return;
+    q.reference = r.reference || '';
+    q.verified = ['yes','no','unknown'].includes(r.verified) ? r.verified : 'unknown';
+    q.scores = r.scores && typeof r.scores==='object' ? {
+      accuracy: numOr(r.scores.accuracy,3),
+      recognizability: numOr(r.scores.recognizability,3),
+      humor: numOr(r.scores.humor,3),
+      fit: numOr(r.scores.fit,3),
+      originality: numOr(r.scores.originality,3)
+    } : null;
+    q.category = ['PERFECT','MINOR EDIT','REWRITE','REMOVE'].includes(r.category) ? r.category : 'REWRITE';
+    q.suggestion = r.suggestion || '';
+    q.notes = r.notes || '';
+  });
+}
+
+function numOr(v, fallback){
+  const n = parseInt(v);
+  return isNaN(n) ? fallback : Math.max(1, Math.min(5, n));
+}
+function clampInt(v, min, max, fallback){
+  const n = parseInt(v);
+  if(isNaN(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+}
+
+/* =========================================================
+   GENERATE
+   ========================================================= */
+async function runGenerate(){
+  if(pipelineRunning) return;
+  const theme = document.getElementById('gen-theme').value;
+  const amount = clampInt(document.getElementById('gen-amount').value, 1, 500, 20);
+  const batchSize = 10;
+  const numBatches = Math.ceil(amount / batchSize);
+
+  pipelineRunning = true;
+  cancelRequested = false;
+  toggleRunButtons(true);
+  showProgress(numBatches, 'Gen batch');
+
+  let generatedCount = 0;
+  for(let i=0;i<numBatches;i++){
+    if(cancelRequested){ logLine('Stopped by user.', 'err'); break; }
+    const n = Math.min(batchSize, amount - i*batchSize);
+    updateProgress(i, numBatches, 'Gen batch');
+    try{
+      const items = await generateBatch(theme, n);
+      items.forEach(it=>{
+        if(it && it.text) quotes.push(newQuoteObj(it.text, it.reference||'', 'generated'));
+      });
+      generatedCount += items.length;
+      logLine(`Batch ${i+1}/${numBatches}: generated ${items.length} quotes`, 'ok');
+    }catch(e){
+      logLine(`Batch ${i+1}/${numBatches}: FAILED — ${e.message}`, 'err');
+    }
+    updateProgress(i+1, numBatches, 'Gen batch');
+    renderQueueStats();
+  }
+  logLine(`Generation finished — ${generatedCount} quotes queued. Run the review pipeline to score them.`);
+  if(generatedCount) showToast(`Generated ${generatedCount} quotes — ready for review.`, 'ok');
+  pipelineRunning = false;
+  toggleRunButtons(false);
+  renderQueueStats();
+}
+
+async function generateBatch(theme, n){
+  const system = buildGenerateSystemPrompt(theme);
+  const userText = `Generate exactly ${n} new quotes.`;
+  const maxTokens = Math.min(8000, 500 + n * 120);
+  const text = await callModel(system, userText, true, maxTokens);
+  let parsed;
+  try{
+    parsed = extractJSON(text);
+  }catch(e){
+    throw new Error('JSON parse failed — the model\'s response was malformed. Re-running this batch usually fixes it.');
+  }
+  if(!Array.isArray(parsed)) throw new Error('unexpected response shape');
+  return parsed;
+}
+
+/* =========================================================
+   RESULTS TABLE
+   ========================================================= */
+function toggleTopPicks(){
+  topPicksMode = !topPicksMode;
+  document.getElementById('btn-top-picks').textContent = 'Top picks: ' + (topPicksMode ? 'on' : 'off');
+  renderResults();
+}
+
+function getFiltered(){
+  let list = quotes.slice();
+  const search = document.getElementById('filter-search').value.toLowerCase();
+  if(search){
+    list = list.filter(q => q.currentText.toLowerCase().includes(search) || (q.reference||'').toLowerCase().includes(search));
+  }
+  if(topPicksMode){
+    list = list.filter(q => q.category && q.category !== 'REMOVE');
+    list.sort((a,b)=> composite(b) - composite(a));
+    const n = clampInt(document.getElementById('top-picks-n').value, 1, 500, 20);
+    list = list.slice(0, n);
+    return list;
+  }
+  const cat = document.getElementById('filter-category').value;
+  if(cat === 'Unreviewed') list = list.filter(q=>!q.category);
+  else if(cat !== 'All') list = list.filter(q=>q.category===cat);
+
+  const ver = document.getElementById('filter-verified').value;
+  if(ver !== 'All') list = list.filter(q=>q.verified===ver);
+
+  const sortBy = document.getElementById('sort-by').value;
+  const rank = {PERFECT:0,'MINOR EDIT':1,REWRITE:2,REMOVE:3};
+  if(sortBy==='score') list.sort((a,b)=> composite(b)-composite(a));
+  else if(sortBy==='category') list.sort((a,b)=> (rank[a.category]??4) - (rank[b.category]??4));
+  else if(sortBy==='alpha') list.sort((a,b)=> a.currentText.localeCompare(b.currentText));
+
+  return list;
+}
+
+function renderResults(){
+  const tbody = document.getElementById('results-tbody');
+  const list = getFiltered();
+  if(!list.length){
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">No quotes match. Load or generate quotes, then run the review pipeline.</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(q => {
+    const cat = q.category || '';
+    const scoresHtml = q.scores
+      ? `<span class="scores-mini">A<b>${q.scores.accuracy}</b> R<b>${q.scores.recognizability}</b> H<b>${q.scores.humor}</b> F<b>${q.scores.fit}</b> O<b>${q.scores.originality}</b></span><br><span class="composite">${composite(q).toFixed(1)}</span>`
+      : `<span class="scores-mini">\u2014</span>`;
+    const verBadge = q.category ? `<span class="badge ${q.verified}">${q.verified}</span>` : '';
+    const suggestionHtml = q.suggestion
+      ? `<span class="suggestion-text">${escapeHtml(q.suggestion)}</span><button class="btn ghost" onclick="acceptSuggestion('${q.id}')">Accept</button>`
+      : '<span class="suggestion-text">\u2014</span>';
+    return `<tr>
+      <td><textarea class="cell-quote" rows="2" onchange="editQuote('${q.id}', this.value)">${escapeHtml(q.currentText)}</textarea></td>
+      <td class="ref-cell">${escapeHtml(q.reference || '\u2014')}<br>${verBadge}</td>
+      <td>${scoresHtml}</td>
+      <td><span class="pill ${catClass(cat)}">${cat || 'unreviewed'}</span></td>
+      <td>${suggestionHtml}</td>
+      <td style="color:var(--muted);font-size:11px;">${escapeHtml(q.notes || '')}</td>
+      <td class="row-actions">
+        <button class="btn ghost" onclick="deleteQuote('${q.id}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function editQuote(id, value){
+  const q = quotes.find(x=>x.id===id);
+  if(!q) return;
+  q.currentText = value;
+  q.edited = true;
+  renderExportPreview();
+  persistQuotes();
+}
+function acceptSuggestion(id){
+  const q = quotes.find(x=>x.id===id);
+  if(!q) return;
+  q.currentText = q.suggestion;
+  q.suggestion = '';
+  q.edited = true;
+  renderResults();
+  renderExportPreview();
+  persistQuotes();
+}
+function deleteQuote(id){
+  quotes = quotes.filter(x=>x.id!==id);
+  renderResults();
+  renderQueueStats();
+  renderExportPreview();
+}
+
+function acceptAllSuggestions(){
+  const visible = new Set(getFiltered().map(q=>q.id));
+  let count = 0;
+  quotes.forEach(q=>{
+    if(visible.has(q.id) && q.suggestion){
+      q.currentText = q.suggestion;
+      q.suggestion = '';
+      q.edited = true;
+      count++;
+    }
+  });
+  if(!count){ showToast('No visible suggestions to accept.'); return; }
+  renderResults();
+  renderExportPreview();
+  persistQuotes();
+  showToast(`Accepted ${count} suggestion${count===1?'':'s'}.`, 'ok');
+}
+
+function deleteAllRemoved(){
+  const before = quotes.length;
+  quotes = quotes.filter(q=> q.category !== 'REMOVE');
+  const removed = before - quotes.length;
+  if(!removed){ showToast('No REMOVE-flagged quotes to delete.'); return; }
+  renderResults();
+  renderQueueStats();
+  renderExportPreview();
+  showToast(`Deleted ${removed} REMOVE-flagged quote${removed===1?'':'s'}.`, 'ok');
+}
+
+async function copyExport(kind){
+  const list = getExportable();
+  if(!list.length){ showToast('No reviewed, non-removed quotes to copy yet.'); return; }
+  const content = list.map(q=>q.currentText).join('\n');
+  try{
+    await navigator.clipboard.writeText(content);
+    showToast(`Copied ${list.length} quotes to clipboard.`, 'ok');
+  }catch(e){
+    showToast('Clipboard access was blocked — use the download button instead.', 'err');
+  }
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* =========================================================
+   EXPORT
+   ========================================================= */
+function getExportable(){
+  return quotes.filter(q=> q.category && q.category !== 'REMOVE');
+}
+
+function renderExportPreview(){
+  const list = getExportable();
+  const box = document.getElementById('export-preview');
+  box.textContent = list.length
+    ? list.map(q=>q.currentText).join('\n')
+    : 'Nothing to export yet — review some quotes first.';
+}
+
+function doExport(kind){
+  const list = getExportable();
+  if(!list.length){ showToast('No reviewed, non-removed quotes to export yet.'); return; }
+  let content, filename;
+  if(kind==='clean'){
+    content = list.map(q=>q.currentText).join('\n');
+    filename = 'gd_quotes_clean.txt';
+  } else if(kind==='refs'){
+    content = list.map(q=> `${q.currentText} — [${q.reference || 'unknown'}]`).join('\n');
+    filename = 'gd_quotes_with_references.txt';
+  } else {
+    content = list.map(q=> `${q.currentText}\tcategory:${q.category}\tscore:${composite(q).toFixed(1)}\tref:${q.reference||'unknown'}\tverified:${q.verified}`).join('\n');
+    filename = 'gd_quotes_with_scores.txt';
+  }
+  const blob = new Blob([content], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  renderExportPreview();
+}
+
+</script>
+</body>
+</html>
